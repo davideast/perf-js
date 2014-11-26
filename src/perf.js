@@ -54,10 +54,101 @@
     return original.filter(function(i) {return b.indexOf(i) < 0;});
   }
 
+  function ensureResourceObject(resource) {
+    return resource instanceof PerformanceResourceTiming;
+  }
+
+  function ensureTimingObject(timing) {
+    return timing instanceof PerformanceTiming;
+  }
+
+  // Citing - https://github.com/addyosmani/timing.js
+  function calcFirstPaintTime(window) {
+    var firstPaint = 0;
+    var firstPaintTime;
+
+    // Chrome
+    if (window.chrome && window.chrome.loadTimes) {
+      // Convert to ms
+      firstPaint = window.chrome.loadTimes().firstPaintTime * 1000;
+      firstPaintTime = firstPaint - (window.chrome.loadTimes().startLoadTime * 1000);
+    }
+    // IE
+    else if (typeof performance.timing.msFirstPaint === "number") {
+      firstPaint = performance.timing.msFirstPaint;
+      firstPaintTime = firstPaint - performance.timing.navigationStart;
+    }
+
+    return firstPaintTime;
+  }
+
+  function calcTimingMetrics(timing) {
+
+    if (!ensureTimingObject(timing)) {
+      throw new Error("calcTimingMetrics(): arg bust be a PerformanceTiming object");
+    }
+
+    // Citing metrics from Addy Osmani and Perfbar
+    return Object.freeze({
+      // Total time from start to load
+      loadTime: timing.loadEventEnd - timing.navigationStart,
+      // Time spent constructing the DOM tree
+      domReadyTime: timing.domComplete - timing.domInteractive,
+      // Time consumed prepaing the new page
+      readyStart: timing.fetchStart - timing.navigationStart,
+      // Time spent during redirection
+      redirectTime: timing.redirectEnd - timing.redirectStart,
+      // AppCache
+      appcacheTime: timing.domainLookupStart - timing.fetchStart,
+      // Time spent unloading documents
+      unloadEventTime: timing.unloadEventEnd - timing.unloadEventStart,
+      // DNS query time
+      lookupDomainTime: timing.domainLookupEnd - timing.domainLookupStart,
+      // TCP connection time
+      connectTime: timing.connectEnd - timing.connectStart,
+      // Time spent during the request
+      requestTime: timing.responseEnd - timing.requestStart,
+      // Request to completion of the DOM loading
+      initDomTreeTime: timing.domInteractive - timing.responseEnd,
+      // Load event time
+      loadEventTime: timing.loadEventEnd - timing.loadEventStart,
+      // Time it takes to get the first byte from the server
+      latency: timing.responseStart - timing.connectStart,
+      // Time it takes to get the full response from the server
+      backend: timing.responseEnd - timing.navigationStart,
+      // Time it takes for the front end to load
+      frontend: timing.loadEventStart - timing.responseEnd,
+      // Time from DOM loading to the point where it can be used
+      domContentLoaded: timing.domContentLoadedEventStart - timing.domInteractive,
+      // Time it takes to process the page
+      processDuration: timing.loadEventStart - timing.domLoading,
+      // Time it takes to paint the first frame
+      firstPaintTime: calcFirstPaintTime(window)
+    });
+
+  }
+
+  function calcResourceMetrics(resource) {
+
+    if (!ensureResourceObject(resource)) {
+      throw new Error("calcResourceMetrics(): arg bust be a PerformanceResourceTiming object");
+    }
+
+    return Object.freeze({
+      dns: resource.domainLookupEnd - resource.domainLookupStart,
+      tcp: resource.connectEnd - resource.connectStart,
+      timeToFirstByte: resource.responseStart - resource.startTime,
+      transfer: resource.responseEnd - resource.responseStart,
+      total: resource.responseEnd - resource.startTime
+    });
+  }
+
   function perf(performance, userAgent) {
 
     var listeners = {};
     var resourceCache = {};
+    var timing = {};
+    var timingMetrics = {};
     var uid = 0;
 
     // increment unique id
@@ -83,7 +174,7 @@
     var push = function push(resource) {
 
       // only PerformanceResourceTiming objects can be pushed
-      if (resource instanceof PerformanceResourceTiming === false) {
+      if (!ensureResourceObject(resource)) {
         throw new Error("perf.push(): arg bust be a PerformanceResourceTiming object");
       }
 
@@ -92,6 +183,9 @@
 
       // raise the proper events
       raiseEvent(resource);
+
+      // calculate metrics
+      resource.metric = calcResourceMetrics(resource);
 
       // add to local cache
       resourceCache[nextUid()] = resource;
@@ -140,21 +234,25 @@
           });
 
         };
-        send.call(this);
+        send.apply(this, arguments);
       };
     }());
 
     // grab the initially loaded resources
     // these are usually js, css, and image files
+    // record and calculate timing metrics of page load
     var init = function() {
       performance.getEntries().forEach(push);
+      timing = performance.timing;
+      timing.metrics = calcTimingMetrics(timing);
     };
     init();
 
     return Object.freeze({
       on: on,
       push: push,
-      userAgent: userAgent
+      userAgent: userAgent,
+      timing: timing
     });
 
   }
