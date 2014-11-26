@@ -84,7 +84,7 @@
 
       // only PerformanceResourceTiming objects can be pushed
       if (resource instanceof PerformanceResourceTiming === false) {
-        throw new Error("perf.push(): First arg bust be a PerformanceResourceTiming object");
+        throw new Error("perf.push(): arg bust be a PerformanceResourceTiming object");
       }
 
       // set the userAgent string
