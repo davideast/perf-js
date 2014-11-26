@@ -1,9 +1,15 @@
 (function(window, performance) {
   "use strict";
 
-  // return if not performance doesn't exist
-  // this is obviously not ideal
+  // check if the browser provides the appropriate APIs
+
+  // Navigation Timing API check - IE9+
   if(!performance) {
+    throw new Error("perf: Your browser does not support the Navigation Timing API.");
+  }
+
+  // Resource Timing API check - IE10+ (No Safari)
+  if(!performance.getEntries) {
     throw new Error("perf: Your browser does not support the Resource Timing API.");
   }
 
