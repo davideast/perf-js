@@ -1,9 +1,9 @@
-var gulp = require('gulp'),
-    connect = require('gulp-connect'),
-    open = require("gulp-open"),
-    browserify = require('gulp-browserify'),
-    concat = require('gulp-concat'),
-    port = process.env.port || 3031;
+var gulp = require('gulp');
+var connect = require('gulp-connect');
+var open = require("gulp-open");
+var concat = require('gulp-concat');
+var eslint = require('gulp-eslint');
+var port = process.env.port || 3031;
 
 gulp.task('browserify', function() {
     gulp.src('./app/src/js/main.js')
@@ -29,7 +29,7 @@ gulp.task('connect', function() {
 });
 
 gulp.task('js', function () {
-  gulp.src('./app/dist/**/*.js')
+  gulp.src('./app/js/**/*.js')
     .pipe(connect.reload());
 });
 
@@ -38,12 +38,30 @@ gulp.task('html', function () {
     .pipe(connect.reload());
 });
 
-gulp.task('watch', function() {
-    gulp.watch('app/dist/js/*.js', ['js']);
-    gulp.watch('app/index.html', ['html']);
-    gulp.watch('app/src/js/**/*.js', ['browserify']);
+gulp.task('bower', function(){
+  gulp.src([
+    './bower_components/firebase/firebase.js'
+    ])
+    .pipe(gulp.dest('./app/lib'));
 });
 
-//gulp.task('default', ['browserify']);
+gulp.task('watch', function() {
+    gulp.watch('app/index.html', ['html']);
+    gulp.watch('app/js/**/*.js', ['js']);
+});
 
-gulp.task('serve', ['connect', 'open', 'watch']);
+gulp.task('copy', function(){
+  gulp.src('./src/perf.js')
+    .pipe(gulp.dest('dist'));
+});
+
+gulp.task('lint', function () {
+    return gulp.src(['./src/**/*.js'])
+        .pipe(eslint())
+        .pipe(eslint.format())
+        .pipe(eslint.failOnError());
+});
+
+gulp.task('default', ['lint', 'copy']);
+
+gulp.task('serve', ['default', 'connect', 'open', 'watch']);

@@ -26,17 +26,12 @@ app.get("/", function (req, res) {
 });
 
 app.get('/todos', function (req, res) {
-
   res.json(data);
-
 });
 
 app.post('/todos', function(req, res) {
-  console.log(req.body);
   data.push(req.body);
-
   return res.json(data);
-
 });
 
 console.log("Simple static server listening at http://localhost:" + port);
