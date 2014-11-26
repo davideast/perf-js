@@ -1,12 +1,12 @@
 {
-  "name": "react-boilerplate",
-  "version": "0.0.0",
+  "name": "perf-js",
+  "version": "0.0.1",
+  "homepage": "https://github.com/davideast/perf-js",
   "authors": [
     "David <david@firebase.com>"
   ],
-  "keywords": [
-    "react"
-  ],
+  "description": "perf.js is a library that wraps the window.performance API. It uses a pub/sub like model to inform the developer when a new resource has been added.",
+  "main": "perf.js",
   "license": "MIT",
   "private": true,
   "ignore": [
@@ -15,8 +15,5 @@
     "bower_components",
     "test",
     "tests"
-  ],
-  "dependencies": {
-    "firebase": "~2.0.4"
-  }
+  ]
 }
