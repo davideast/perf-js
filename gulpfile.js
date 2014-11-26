@@ -1,22 +1,16 @@
 var gulp = require('gulp');
 var connect = require('gulp-connect');
 var open = require("gulp-open");
-var concat = require('gulp-concat');
+var uglify = require('gulp-uglify');
 var eslint = require('gulp-eslint');
+var rename = require("gulp-rename");
 var port = process.env.port || 3031;
-
-gulp.task('browserify', function() {
-    gulp.src('./app/src/js/main.js')
-      .pipe(browserify({transform: 'reactify'}))
-      .pipe(concat('app.js'))
-      .pipe(gulp.dest('./app/dist/js'));
-});
 
 gulp.task('open', function(){
   var options = {
     url: 'http://localhost:' + port,
   };
-  gulp.src('./app/index.html')
+  gulp.src('app/index.html')
   .pipe(open('', options));
 });
 
@@ -29,20 +23,20 @@ gulp.task('connect', function() {
 });
 
 gulp.task('js', function () {
-  gulp.src('./app/js/**/*.js')
+  gulp.src('app/js/**/*.js')
     .pipe(connect.reload());
 });
 
 gulp.task('html', function () {
-  gulp.src('./app/*.html')
+  gulp.src('app/*.html')
     .pipe(connect.reload());
 });
 
 gulp.task('bower', function(){
   gulp.src([
-    './bower_components/firebase/firebase.js'
+    'bower_components/firebase/firebase.js'
     ])
-    .pipe(gulp.dest('./app/lib'));
+    .pipe(gulp.dest('app/lib'));
 });
 
 gulp.task('watch', function() {
@@ -51,12 +45,19 @@ gulp.task('watch', function() {
 });
 
 gulp.task('copy', function(){
-  gulp.src('./src/perf.js')
+  gulp.src('src/perf.js')
     .pipe(gulp.dest('dist'));
 });
 
+gulp.task('compress', function() {
+  gulp.src('src/perf.js')
+    .pipe(uglify())
+    .pipe(rename("perf.min.js"))
+    .pipe(gulp.dest('dist'))
+});
+
 gulp.task('lint', function () {
-    return gulp.src(['./src/**/*.js'])
+    return gulp.src(['src/**/*.js'])
         .pipe(eslint({
           rules: {
             'no-unused-vars': false
@@ -72,6 +73,6 @@ gulp.task('lint', function () {
         .pipe(eslint.failOnError());
 });
 
-gulp.task('default', ['lint', 'copy']);
+gulp.task('default', ['lint', 'copy', 'compress']);
 
 gulp.task('serve', ['default', 'connect', 'open', 'watch']);
