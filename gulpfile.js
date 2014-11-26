@@ -57,7 +57,17 @@ gulp.task('copy', function(){
 
 gulp.task('lint', function () {
     return gulp.src(['./src/**/*.js'])
-        .pipe(eslint())
+        .pipe(eslint({
+          rules: {
+            'no-unused-vars': false
+          },
+          globals: {
+            'window': true,
+            'XMLHttpRequest': true,
+            'setTimeout': true,
+            'PerformanceResourceTiming': true
+          }
+        }))
         .pipe(eslint.format())
         .pipe(eslint.failOnError());
 });

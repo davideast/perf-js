@@ -1,10 +1,10 @@
-(function(performance, location) {
+(function(window, performance) {
+  "use strict";
 
   // return if not performance doesn't exist
   // this is obviously not ideal
   if(!performance) {
-    console.error('Your browser does not support the Resource Timing API.');
-    return;
+    throw new Error("perf: Your browser does not support the Resource Timing API.");
   }
 
   // create immutable listener object
@@ -15,17 +15,19 @@
     });
   }
 
-  function findWhere(collection, iterator) {
+  // find all items in a collection that match a comparison's criteria
+  function findWhere(collection, compare) {
     var found = [];
     Object.keys(collection).forEach(function(key) {
       var item = collection[key];
-      if(iterator(item)) {
+      if(compare(item)) {
         found.push(item);
       }
     });
     return found;
   }
 
+  // find the size of a collection (either array or object)
   function size(collection) {
     var length = 0;
     Object.keys(collection).forEach(function(key) {
@@ -34,15 +36,14 @@
     return length;
   }
 
-  function toArray(object) {
-    var array = [];
-    Object.keys(object).forEach(function(key) {
-      var item = object[key];
-      array.push(item);
+  // Map an object's properties into an array
+  function objToArray(object) {
+    return Object.keys(object).map(function(key) {
+      return object[key];
     });
-    return array;
   }
 
+  // return the difference between two arrays
   function diff(original, b) {
     return original.filter(function(i) {return b.indexOf(i) < 0;});
   }
@@ -54,29 +55,42 @@
     var uid = 0;
 
     // increment unique id
-    var _nextUid = function() {
-	     return uid = uid + 1;
-	  };
+    var nextUid = function() {
+      var newUid = uid + 1;
+      return newUid;
+    };
 
-    // intercept XMLHttpRequest.prototype.send
-    (function() {
-      var send = XMLHttpRequest.prototype.send;
-      XMLHttpRequest.prototype.send = function() {
-        var onload = this.onload;
-        this.onload = function() {
-          if(onload) {
-            onload();
-          }
+    // Validate the event listener exists and raise
+    // by initiatorType and global listener if exists.
+    var raiseEvent = function raiseEvent(resource) {
+      var eventListener = listeners[resource.initiatorType];
+      var entryListener = listeners.entry;
+      if(eventListener) {
+        eventListener.event(resource);
+      }
+      if(entryListener) {
+        entryListener.event(resource);
+      }
+    };
 
-          // get the entries on the next cycle
-          setTimeout(function() {
-            reconcile(performance.getEntries());
-          });
+    // Add PerformanceResourceTiming to local cache and raise appropriate events
+    var push = function push(resource) {
 
-        }
-        send.call(this);
-      };
-    }());
+      // only PerformanceResourceTiming objects can be pushed
+      if (resource instanceof PerformanceResourceTiming === false) {
+        throw new Error("perf.push(): First arg bust be a PerformanceResourceTiming object");
+      }
+
+      // set the userAgent string
+      resource.userAgent = userAgent;
+
+      // raise the proper events
+      raiseEvent(resource);
+
+      // add to local cache
+      resourceCache[nextUid()] = resource;
+
+    };
 
     var on = function on(initiatorType, callback) {
 
@@ -94,21 +108,8 @@
 
     };
 
-    // Validate the event listener exists and raise
-    // by initiatorType and global listener if exists.
-    var _raiseEvent = function _raiseEvent(resource) {
-      var eventListener = listeners[resource.initiatorType];
-      var entryListener = listeners.entry;
-      if(eventListener) {
-        eventListener.event(resource);
-      }
-      if(entryListener) {
-        entryListener.event(resource);
-      }
-    };
-
     var reconcile = function reconcile(entries) {
-      var cacheArray = toArray(resourceCache);
+      var cacheArray = objToArray(resourceCache);
       var difference = diff(entries, cacheArray);
       // add the items from performance.getEntries() that
       // are not in the resourceCache
@@ -117,24 +118,25 @@
       });
     };
 
-    // Add PerformanceResourceTiming to local cache and raise appropriate events
-    var push = function push(resource) {
+    // intercept XMLHttpRequest.prototype.send
+    (function() {
+      var send = XMLHttpRequest.prototype.send;
+      XMLHttpRequest.prototype.send = function() {
+        var onload = this.onload;
+        this.onload = function() {
+          if(onload) {
+            onload();
+          }
 
-      // only PerformanceResourceTiming objects can be pushed
-      if (resource instanceof PerformanceResourceTiming === false) {
-        throw new Error('The resource parameter needs to be a PerformanceResourceTiming object');
-      }
+          // get the entries on the next cycle
+          setTimeout(function() {
+            reconcile(performance.getEntries());
+          });
 
-      // set the userAgent string
-      resource.userAgent = userAgent;
-
-      // raise the proper events
-      _raiseEvent(resource);
-
-      // add to local cache
-      resourceCache[_nextUid()] = resource;
-
-    };
+        };
+        send.call(this);
+      };
+    }());
 
     // grab the initially loaded resources
     // these are usually js, css, and image files
@@ -149,8 +151,8 @@
       userAgent: userAgent
     });
 
-  };
+  }
 
   window.perf = perf;
 
-}(window.performance, window.location));
+}(window, window.performance));
