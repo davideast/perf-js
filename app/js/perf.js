@@ -158,8 +158,8 @@
 
     // increment unique id
     var nextUid = function() {
-      uid = uid + 1;
-      return uid;
+      var newUid = uid + 1;
+      return newUid;
     };
 
     // Validate the event listener exists and raise

@@ -60,7 +60,8 @@ gulp.task('lint', function () {
     return gulp.src(['src/**/*.js'])
         .pipe(eslint({
           rules: {
-            'no-unused-vars': false
+            'no-unused-vars': false,
+            'no-underscore-dangle': false
           },
           globals: {
             'window': true,
