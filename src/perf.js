@@ -1,8 +1,6 @@
 (function(window) {
   "use strict";
 
-  // check if the browser provides the appropriate APIs
-
   // create immutable listener object
   function listener(params) {
     return Object.freeze({
@@ -120,6 +118,7 @@
 
   }
 
+  // Calculate metrics for individual resources
   function calcResourceMetrics(resource) {
 
     if (!isResourceObject(resource)) {
@@ -136,6 +135,8 @@
   }
 
   function perf(params) {
+
+    // check if the browser provides the appropriate APIs
 
     // Navigation Timing API check - IE9+
     if(!params.performance) {
@@ -156,7 +157,7 @@
     var timingMetrics = {};
     var uid = 0;
 
-    // increment unique id
+    // generate uid by incrementing on a count
     var nextUid = function() {
       uid = uid + 1;
       return uid;
