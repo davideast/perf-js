@@ -258,6 +258,7 @@
       on: on,
       push: push,
       userAgent: userAgent,
+      pageUrl: pageUrl,
       timing: timing
     });
 

@@ -48,7 +48,8 @@ app.get("/", function (req, res) {
 });
 
 app.get('/todos', function (req, res) {
-  res.json(dataArray);
+  console.log('send');
+  return res.json(dataArray);
 });
 
 app.post('/todos', function(req, res) {

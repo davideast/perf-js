@@ -6,14 +6,28 @@ $(function() {
     pageUrl: window.location.href
   });
 
-  //var ref = new Firebase('https://webapi.firebaseio.com/perf');
+  var ref = new Firebase('https://perf.firebaseio.com/');
 
-  perf.on('entry', function(resource) {
-    //resourcesRef.push(resource);
-    console.log('push resource', resource);
+  // users
+
+
+  // sites
+  //   sessions
+  //     - metrics
+  //     - resources
+  //     - stats
+
+
+
+  var sessionRef = ref.push({
+    pageUrl: perf.pageUrl,
+    userAgent: perf.userAgent,
+    timing: perf.timing
   });
 
-  console.log(perf);
+  perf.on('xmlhttprequest', function(resource) {
+    sessionRef.child('resources').push(resource);
+  });
 
   // var fireperf = function fireperf(perf, ref) {
   //   // push the current session
@@ -32,12 +46,10 @@ $(function() {
 
   //fireperf(perf, ref);
 
-
-
-  // var interval = setInterval(function() {
-  //   $.get('/todos', function(data) {
-  //
-  //   });
-  // }, 3000);
+  var interval = setInterval(function() {
+    $.get('https://localhost:4577/todos', function(data) {
+      console.log(data);
+    });
+  }, 3000);
 
 });
