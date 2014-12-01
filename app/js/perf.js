@@ -143,9 +143,9 @@
     }
 
     // Resource Timing API check - IE10+ (No Safari)
-    if(!params.performance.getEntries) {
-      throw new Error("perf: Your browser does not support the Resource Timing API.");
-    }
+    // if(!params.performance.getEntries) {
+    //   throw new Error("perf: Your browser does not support the Resource Timing API.");
+    // }
 
     var performance = params.performance;
     var userAgent = params.userAgent;
