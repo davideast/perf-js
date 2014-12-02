@@ -13,7 +13,8 @@ var perf = window.Perf({
   pageUrl: window.location.href
 });
 
-// loads the individual resource as they happen
+// raises an event for the individual resource as they happen
+// currently works for initial resources on page load and XHR calls
 perf.on('entry', function(resource) {
    console.log(resource);
 });
@@ -23,7 +24,7 @@ perf.on('entry', function(resource) {
 
 ```javascript
 perf.on('xmlhttprequest', function(resource) {
-  // this will fire off for every XHR call made
+  // this will fire off for every XHR call (up to 150 entries in the Resource Timing API)
   console.log(resource); 
 });
 ```
