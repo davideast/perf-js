@@ -68,7 +68,8 @@ gulp.task('lint', function () {
             'XMLHttpRequest': true,
             'setTimeout': true,
             'PerformanceResourceTiming': true,
-            'PerformanceTiming': true
+            'PerformanceTiming': true,
+            'console': true
           }
         }))
         .pipe(eslint.format())
