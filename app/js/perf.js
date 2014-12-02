@@ -136,17 +136,6 @@
   }
 
   function perf(params) {
-
-    // Navigation Timing API check - IE9+
-    if(!params.performance) {
-      throw new Error("perf: Your browser does not support the Navigation Timing API.");
-    }
-
-    // Resource Timing API check - IE10+ (No Safari)
-    // if(!params.performance.getEntries) {
-    //   throw new Error("perf: Your browser does not support the Resource Timing API.");
-    // }
-
     var performance = params.performance;
     var userAgent = params.userAgent;
     var pageUrl = params.pageUrl;
@@ -177,7 +166,7 @@
 
     // Add PerformanceResourceTiming to local cache and raise appropriate events
     var push = function push(resource) {
-      var measurement;
+
       // only PerformanceResourceTiming objects can be pushed
       if (!isResourceObject(resource)) {
         throw new Error("perf.push(): arg bust be a PerformanceResourceTiming object");
@@ -224,7 +213,7 @@
     };
 
     // intercept XMLHttpRequest.prototype.send
-    (function() {
+    var interceptXhr = function interceptXhr(callback) {
       var send = XMLHttpRequest.prototype.send;
       XMLHttpRequest.prototype.send = function() {
         var onload = this.onload;
@@ -233,23 +222,48 @@
             onload();
           }
 
-          // get the entries on the next cycle
-          setTimeout(function() {
-            reconcile(performance.getEntries());
-          });
-
+          // fire off callback
+          callback.call(this);
         };
         send.apply(this, arguments);
       };
-    }());
+    };
 
     // grab the initially loaded resources
     // these are usually js, css, and image files
     // record and calculate timing metrics of page load
     var init = function() {
-      performance.getEntries().forEach(push);
+      var getEntries = true;
+      // Navigation Timing API check - IE9+
+      if(!params.performance) {
+        throw new Error("perf: Your browser does not support the Navigation Timing API.");
+      }
+
+      //Resource Timing API check - IE10+ (No Safari)
+      if(!params.performance.getEntries) {
+        console.warn("perf: Your browser does not support the Resource Timing API.");
+        getEntries = false;
+      }
+
       timing = performance.timing;
       timing._metrics = calcTimingMetrics(timing);
+
+      if(getEntries) {
+
+        // push entries that are added on load
+        performance.getEntries().forEach(push);
+
+        interceptXhr(function() {
+
+          // get the entries on the next cycle
+          setTimeout(function() {
+            reconcile(performance.getEntries());
+          });
+
+        });
+
+      }
+
     };
     init();
 
