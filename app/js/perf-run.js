@@ -29,15 +29,16 @@ $(function() {
 
 
     var sessionRef = ref.push({
-      pageUrl: perf.pageUrl,
       userAgent: perf.userAgent,
-      timing: perf.timing
+      timing: perf.timing,
+      pageUrl: window.location.href
     });
 
     $('#app').append(sessionRef.key());
 
     perf.on('xmlhttprequest', function(resource) {
       sessionRef.child('resources').push(resource);
+      console.log(resource);
     });
 
     // var fireperf = function fireperf(perf, ref) {

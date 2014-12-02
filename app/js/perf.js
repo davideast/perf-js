@@ -55,7 +55,7 @@
   // Citing - https://github.com/addyosmani/timing.js
   function calcFirstPaintTime(window) {
     var firstPaint = 0;
-    var firstPaintTime;
+    var firstPaintTime = null;
     var performance = window.performance;
     var chrome = window.chrome;
 
@@ -241,7 +241,7 @@
 
       //Resource Timing API check - IE10+ (No Safari)
       if(!params.performance.getEntries) {
-        console.warn("perf: Your browser does not support the Resource Timing API.");
+        //perf: Your browser does not support the Resource Timing API
         getEntries = false;
       }
 

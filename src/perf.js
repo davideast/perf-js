@@ -55,7 +55,7 @@
   // Citing - https://github.com/addyosmani/timing.js
   function calcFirstPaintTime(window) {
     var firstPaint = 0;
-    var firstPaintTime;
+    var firstPaintTime = null;
     var performance = window.performance;
     var chrome = window.chrome;
 
