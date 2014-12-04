@@ -1,8 +1,6 @@
 (function(window) {
   "use strict";
 
-  // check if the browser provides the appropriate APIs
-
   // create immutable listener object
   function listener(params) {
     return Object.freeze({
@@ -186,6 +184,10 @@
 
     };
 
+    // Listener function for resource entries
+    // First param is the resource type to listen for
+    //  - 'entry' will listen for all entries
+    //  - 'xmlhttprequest' will listen only for xhr calls
     var on = function on(initiatorType, callback) {
 
       // register listener
@@ -229,33 +231,51 @@
       };
     };
 
-    // grab the initially loaded resources
-    // these are usually js, css, and image files
-    // record and calculate timing metrics of page load
-    var init = function() {
+    // Check if the browser provides the appropriate APIs
+    // Returns true if the Resource Timing API exists
+    var hasResourceTimingApi = function hasResourceTimingApi(performance) {
+
       var getEntries = true;
+
       // Navigation Timing API check - IE9+
-      if(!params.performance) {
+      if(!performance) {
         throw new Error("perf: Your browser does not support the Navigation Timing API.");
       }
 
-      //Resource Timing API check - IE10+ (No Safari)
-      if(!params.performance.getEntries) {
-        //perf: Your browser does not support the Resource Timing API
+      // Resource Timing API check - IE10+ (No Safari)
+      if(!performance.getEntries) {
+        // perf: Your browser does not support the Resource Timing API
         getEntries = false;
       }
 
+      return getEntries;
+
+    };
+
+    // grab the initially loaded resources
+    // these are usually js, css, and image files
+    // record and calculate timing metrics of page load
+    var init = function(performance) {
+
+      // check for Resource Timing API
+      var hasTimingApi = hasResourceTimingApi(performance);
+
+      // store timing stats
       timing = performance.timing;
+
+      // calculate metrics
       timing._metrics = calcTimingMetrics(timing);
 
-      if(getEntries) {
+      // if the timing API exists load initial entries
+      // and tap into the XHR send method
+      if(hasTimingApi) {
 
         // push entries that are added on load
         performance.getEntries().forEach(push);
 
         interceptXhr(function() {
 
-          // get the entries on the next cycle
+          // get the entries on the next tick
           setTimeout(function() {
             reconcile(performance.getEntries());
           });
@@ -265,7 +285,8 @@
       }
 
     };
-    init();
+
+    init(params.performance);
 
     return Object.freeze({
       on: on,

@@ -1,9 +1,9 @@
 var gulp = require('gulp');
 var connect = require('gulp-connect');
-var open = require("gulp-open");
+var open = require('gulp-open');
 var uglify = require('gulp-uglify');
 var eslint = require('gulp-eslint');
-var rename = require("gulp-rename");
+var rename = require('gulp-rename');
 var port = process.env.port || 3031;
 
 gulp.task('open', function(){
@@ -52,7 +52,7 @@ gulp.task('copy', function(){
 gulp.task('compress', function() {
   gulp.src('src/perf.js')
     .pipe(uglify())
-    .pipe(rename("perf.min.js"))
+    .pipe(rename('perf.min.js'))
     .pipe(gulp.dest('dist'))
 });
 
