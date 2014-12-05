@@ -42,10 +42,12 @@
     return original.filter(function(i) {return b.indexOf(i) < 0;});
   }
 
+  // ensure type passed is a PerformanceResourceTiming object
   function isResourceObject(resource) {
     return resource instanceof PerformanceResourceTiming;
   }
 
+  // ensure type passed is a PerformanceTiming object
   function isTimingObject(timing) {
     return timing instanceof PerformanceTiming;
   }
@@ -72,6 +74,7 @@
     return firstPaintTime;
   }
 
+  // calculate navigation timing metrics
   function calcTimingMetrics(timing) {
 
     if (!isTimingObject(timing)) {
@@ -118,6 +121,7 @@
 
   }
 
+  // calculate metrics for individual resources
   function calcResourceMetrics(resource) {
 
     if (!isResourceObject(resource)) {
